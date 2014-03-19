@@ -1,0 +1,23 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<urlset xmlns='http://www.sitemaps.org/schemas/sitemap/0.9'>
+    <url>
+        <loc>http://danielgrech.github.io/blog/2014/03/19/dp-to-px-conversion/</loc>
+        <lastmod>2014-03-20T00:22:05+11:00</lastmod>
+    </url>
+    <url>
+        <loc>http://danielgrech.github.io/blog/archives/</loc>
+        <lastmod>2014-03-20T00:22:05+11:00</lastmod>
+    </url>
+    <url>
+        <loc>http://danielgrech.github.io/blog/categories/</loc>
+        <lastmod>2014-03-19T19:07:50+11:00</lastmod>
+    </url>
+    <url>
+        <loc>http://danielgrech.github.io/</loc>
+        <lastmod>2014-03-20T00:22:05+11:00</lastmod>
+    </url>
+    <url>
+        <loc>http://danielgrech.github.io/robots.txt</loc>
+        <lastmod>2014-03-19T19:07:50+11:00</lastmod>
+    </url>
+</urlset>

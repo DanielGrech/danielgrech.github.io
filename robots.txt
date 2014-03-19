@@ -1,0 +1,4 @@
+User-agent: *
+Disallow: 
+
+Sitemap: http://danielgrech.github.io/sitemap.xml 

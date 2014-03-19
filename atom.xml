@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Daniel Grech]]></title>
+  <link href="http://danielgrech.github.io/atom.xml" rel="self"/>
+  <link href="http://danielgrech.github.io/"/>
+  <updated>2014-03-20T00:22:06+11:00</updated>
+  <id>http://danielgrech.github.io/</id>
+  <author>
+    <name><![CDATA[Daniel Grech]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Dp to Px conversion]]></title>
+    <link href="http://danielgrech.github.io/blog/2014/03/19/dp-to-px-conversion/"/>
+    <updated>2014-03-19T19:08:00+11:00</updated>
+    <id>http://danielgrech.github.io/blog/2014/03/19/dp-to-px-conversion</id>
+    <content type="html"><![CDATA[<p>There are often times doing Android development when you will need to apply some dimension value directly in your java code. Anyone creating Android UI&rsquo;s should be familiar with the concept of <a href="http://developer.android.com/training/multiscreen/screendensities.html#TaskUseDP">Display-independant pixels</a>. This is most commonly seen in you layout xml definitions.</p>
+
+<p>Sometimes, there is a need to calculate and apply these same dimen values dynamically in your app. Naively, you could try this:</p>
+
+<figure class='code'><figcaption><span>Padding without taking into account display density</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">MyAwesomeActivity</span> <span class="kd">extends</span> <span class="n">Activity</span> <span class="o">{</span>
+</span><span class='line'>  
+</span><span class='line'>  <span class="nd">@Override</span>
+</span><span class='line'>  <span class="kd">public</span> <span class="kt">void</span> <span class="nf">onCreate</span><span class="o">(</span><span class="n">Bundle</span> <span class="n">savedInstanceState</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>      <span class="kd">super</span><span class="o">.</span><span class="na">onCreate</span><span class="o">(</span><span class="n">savedInstanceState</span><span class="o">);</span>
+</span><span class='line'>      
+</span><span class='line'>      <span class="c1">// ...</span>
+</span><span class='line'>      
+</span><span class='line'>      <span class="n">View</span> <span class="n">view</span> <span class="o">=</span> <span class="n">findViewById</span><span class="o">(</span><span class="n">R</span><span class="o">.</span><span class="na">id</span><span class="o">.</span><span class="na">my_awesome_view</span><span class="o">);</span>
+</span><span class='line'>      
+</span><span class='line'>      <span class="c1">// We want to apply 20dp of padding to the view. Simple, no?</span>
+</span><span class='line'>      <span class="n">view</span><span class="o">.</span><span class="na">setPadding</span><span class="o">(</span><span class="mi">20</span><span class="o">,</span> <span class="mi">20</span><span class="o">,</span> <span class="mi">20</span><span class="o">,</span> <span class="mi">20</span><span class="o">);</span>
+</span><span class='line'>      
+</span><span class='line'>      <span class="c1">// ...</span>
+</span><span class='line'>  <span class="o">}</span>    
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The problem with the above snippet is that when applying dimens in your java code, all values are assumed to be in pixel values! This means that things will work fine on an mdpi device (which have a 1 &ndash; 1 ratio between px and dp), but on any screens with a higher density, the padding will be smaller than intended. For example, on an xhdpi screen (with a 2 &ndash; 1 px to dp ratio), the padding will only be equivalent to 10dp!</p>
+
+<p>To fix this, we need to convert our intended dp value into the correct number of pixels for the current device.</p>
+
+<!-- more -->
+
+
+<p>Luckily Android gives us the tools to do this!</p>
+
+<figure class='code'><figcaption><span>Convert dps to pixels</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">static</span> <span class="kt">float</span> <span class="nf">dpToPixels</span><span class="o">(</span><span class="n">Context</span> <span class="n">context</span><span class="o">,</span> <span class="kt">int</span> <span class="n">dps</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>  <span class="k">return</span> <span class="n">TypedValue</span><span class="o">.</span><span class="na">applyDimension</span><span class="o">(</span><span class="n">TypedValue</span><span class="o">.</span><span class="na">COMPLEX_UNIT_DIP</span><span class="o">,</span> <span class="n">dps</span><span class="o">,</span>
+</span><span class='line'>      <span class="n">context</span><span class="o">.</span><span class="na">getResources</span><span class="o">().</span><span class="na">getDisplayMetrics</span><span class="o">())</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>With this utility method, it&rsquo;s simply a case of:</p>
+
+<figure class='code'><figcaption><span>Dynamic padding which properly taking into account display metrics</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">MyAwesomeActivity</span> <span class="kd">extends</span> <span class="n">Activity</span> <span class="o">{</span>
+</span><span class='line'>  
+</span><span class='line'>  <span class="nd">@Override</span>
+</span><span class='line'>  <span class="kd">public</span> <span class="kt">void</span> <span class="nf">onCreate</span><span class="o">(</span><span class="n">Bundle</span> <span class="n">savedInstanceState</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>      <span class="kd">super</span><span class="o">.</span><span class="na">onCreate</span><span class="o">(</span><span class="n">savedInstanceState</span><span class="o">);</span>
+</span><span class='line'>      
+</span><span class='line'>      <span class="c1">// ...</span>
+</span><span class='line'>      
+</span><span class='line'>      <span class="n">View</span> <span class="n">view</span> <span class="o">=</span> <span class="n">findViewById</span><span class="o">(</span><span class="n">R</span><span class="o">.</span><span class="na">id</span><span class="o">.</span><span class="na">my_awesome_view</span><span class="o">);</span>
+</span><span class='line'>      
+</span><span class='line'>      <span class="c1">// Hooray - padding will now be 20dp on all devices</span>
+</span><span class='line'>      <span class="kt">int</span> <span class="n">p</span> <span class="o">=</span> <span class="n">dpToPixels</span><span class="o">(</span><span class="k">this</span><span class="o">,</span> <span class="mi">20</span><span class="o">);</span>
+</span><span class='line'>      <span class="n">view</span><span class="o">.</span><span class="na">setPadding</span><span class="o">(</span><span class="n">p</span><span class="o">,</span> <span class="n">p</span><span class="o">,</span> <span class="n">p</span><span class="o">,</span> <span class="n">p</span><span class="o">);</span>
+</span><span class='line'>      
+</span><span class='line'>      <span class="c1">// ...</span>
+</span><span class='line'>  <span class="o">}</span>    
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Note for static values you could also work around this by simply defining your dimension value in a Android resource bucket and referencing it from there (then you get all the goodness that comes with Android resource buckets, such as assigning different values for different screen sizes). For cases where you need to calculate these values dynamically, having this functionality in a utility class can be quite handy</p>
+
+<p>Happy coding everyone!</p>
+]]></content>
+  </entry>
+  
+</feed>
