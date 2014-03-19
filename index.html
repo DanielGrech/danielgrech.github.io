@@ -9,7 +9,7 @@
 	<meta name="author" content="Daniel Grech">
 
 	
-	<meta name="description" content="Mar 19th, 2014 Android Dp to Px Conversion There are often times doing Android development when you will need to apply some dimension value directly &hellip;">
+	<meta name="description" content="Mar 20th, 2014 Android, UI The Power of Custom Compound Views As an app grows in features and complexity, the amount of code it takes to customise &hellip;">
 	
 
   <!-- http://t.co/dKP3o1e -->
@@ -19,7 +19,7 @@
 
 	<link href="/atom.xml" rel="alternate" title="Daniel Grech" type="application/atom+xml">
 	
-	<link rel="canonical" href="http://danielgrech.github.io/">
+	<link rel="canonical" href="http://dgrech.com/">
 	<link href="/favicon.png" rel="shortcut icon">
 	<link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
 	<link href="/stylesheets/font-awesome.min.css" media="screen, projection" rel="stylesheet" type="text/css">
@@ -96,6 +96,257 @@
 			<div class="mid-col-container">
 				<div id="content" class="inner">
 <div itemscope itemtype="http://schema.org/Blog">
+
+
+    <article class="post" itemprop="blogPost" itemscope itemtype="http://schema.org/BlogPosting">
+	<div class="meta">
+		<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-03-20T07:49:00+11:00" data-updated="true" itemprop="datePublished">Mar 20<span>th</span>, 2014</time></div>
+		<div class="tags">
+
+
+	<a class='category' href='/blog/categories/android/'>Android</a>, <a class='category' href='/blog/categories/ui/'>UI</a>
+
+
+</div>
+		
+	</div>
+	<h1 class="title" itemprop="name"><a href="/blog/2014/03/20/the-power-of-custom-compound-views/" itemprop="url">The Power of Custom Compound Views</a></h1>
+	<div class="entry-content" itemprop="articleBody">
+		<p>As an app grows in features and complexity, the amount of code it takes to customise and polish the UI increases. Custom views can be a powerful tool in cleaning up your code and making it generally more pleasureable to read. Separating your view presentation code from your business logic (say, in your activity) is one of the basic tenants of <a href="http://en.wikipedia.org/wiki/Model%E2%80%93view%E2%80%93controller">MVC</a>.</p>
+
+<p>Let&rsquo;s look at a simple example of where this customisation can lead to bloated code. Consider populating a ListView with some items in your adapter. Too often do I see code like this:</p>
+
+<figure class='code'><figcaption><span>Base model class to present</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">Person</span> <span class="o">{</span>
+</span><span class='line'>    <span class="kt">int</span> <span class="n">mId</span><span class="o">;</span>
+</span><span class='line'>    <span class="n">String</span> <span class="n">mName</span><span class="o">;</span>
+</span><span class='line'>    <span class="n">String</span> <span class="n">mAddress</span><span class="o">;</span>
+</span><span class='line'>    <span class="kt">int</span> <span class="n">mAge</span><span class="o">;</span>
+</span><span class='line'>    <span class="n">Uri</span> <span class="n">mAvatarUri</span><span class="o">;</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+<figure class='code'><figcaption><span>Your list item layout - res/layout/li_person.xml</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+</pre></td><td class='code'><pre><code class='xml'><span class='line'><span class="nt">&lt;LinearLayout</span>
+</span><span class='line'>        <span class="na">xmlns:android=</span><span class="s">&quot;http://schemas.android.com/apk/res/android&quot;</span>
+</span><span class='line'>        <span class="na">android:orientation=</span><span class="s">&quot;horizontal&quot;</span>
+</span><span class='line'>        <span class="na">android:layout_width=</span><span class="s">&quot;match_parent&quot;</span>
+</span><span class='line'>        <span class="na">android:layout_height=</span><span class="s">&quot;match_parent&quot;</span><span class="nt">&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;ImageView</span>
+</span><span class='line'>            <span class="na">android:id=</span><span class="s">&quot;@+id/image&quot;</span>
+</span><span class='line'>            <span class="na">android:layout_width=</span><span class="s">&quot;64dp&quot;</span>
+</span><span class='line'>            <span class="na">android:layout_height=</span><span class="s">&quot;64dp&quot;</span><span class="nt">/&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;LinearLayout</span>
+</span><span class='line'>            <span class="na">android:layout_width=</span><span class="s">&quot;match_parent&quot;</span>
+</span><span class='line'>            <span class="na">android:layout_height=</span><span class="s">&quot;wrap_content&quot;</span>
+</span><span class='line'>            <span class="na">android:orientation=</span><span class="s">&quot;vertical&quot;</span><span class="nt">&gt;</span>
+</span><span class='line'>        <span class="nt">&lt;TextView</span>
+</span><span class='line'>                <span class="na">android:id=</span><span class="s">&quot;@+id/name&quot;</span>
+</span><span class='line'>                <span class="na">android:layout_width=</span><span class="s">&quot;match_parent&quot;</span>
+</span><span class='line'>                <span class="na">android:layout_height=</span><span class="s">&quot;wrap_content&quot;</span><span class="nt">/&gt;</span>
+</span><span class='line'>        <span class="nt">&lt;TextView</span>
+</span><span class='line'>                <span class="na">android:id=</span><span class="s">&quot;@+id/address&quot;</span>
+</span><span class='line'>                <span class="na">android:layout_width=</span><span class="s">&quot;match_parent&quot;</span>
+</span><span class='line'>                <span class="na">android:layout_height=</span><span class="s">&quot;wrap_content&quot;</span><span class="nt">/&gt;</span>
+</span><span class='line'>        <span class="nt">&lt;TextView</span>
+</span><span class='line'>                <span class="na">android:id=</span><span class="s">&quot;@+id/age&quot;</span>
+</span><span class='line'>                <span class="na">android:layout_width=</span><span class="s">&quot;match_parent&quot;</span>
+</span><span class='line'>                <span class="na">android:layout_height=</span><span class="s">&quot;wrap_content&quot;</span><span class="nt">/&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;/LinearLayout&gt;</span>
+</span><span class='line'><span class="nt">&lt;/LinearLayout&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+<figure class='code'><figcaption><span>Bloated adapter implementation</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+<span class='line-number'>55</span>
+<span class='line-number'>56</span>
+<span class='line-number'>57</span>
+<span class='line-number'>58</span>
+<span class='line-number'>59</span>
+<span class='line-number'>60</span>
+<span class='line-number'>61</span>
+<span class='line-number'>62</span>
+<span class='line-number'>63</span>
+<span class='line-number'>64</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">MyListAdapter</span> <span class="kd">extends</span> <span class="n">BaseAdapter</span> <span class="o">{</span>
+</span><span class='line'>    <span class="kd">private</span> <span class="n">List</span><span class="o">&lt;</span><span class="n">Person</span><span class="o">&gt;</span> <span class="n">mPersons</span><span class="o">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="kd">public</span> <span class="nf">MyListAdapter</span><span class="o">(</span><span class="n">List</span><span class="o">&lt;</span><span class="n">Person</span><span class="o">&gt;</span> <span class="n">persons</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>      <span class="n">mPersons</span> <span class="o">=</span> <span class="n">persons</span><span class="o">;</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="nd">@Override</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="kt">int</span> <span class="nf">getCount</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">mPersons</span> <span class="o">==</span> <span class="kc">null</span> <span class="o">?</span> <span class="mi">0</span> <span class="o">:</span> <span class="n">mPersons</span><span class="o">.</span><span class="na">size</span><span class="o">();</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="nd">@Override</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="n">Person</span> <span class="nf">getItem</span><span class="o">(</span><span class="kt">int</span> <span class="n">position</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">mPersons</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="n">position</span><span class="o">);</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="nd">@Override</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="kt">long</span> <span class="nf">getItemId</span><span class="o">(</span><span class="kt">int</span> <span class="n">position</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="nf">getItem</span><span class="o">(</span><span class="n">position</span><span class="o">).</span><span class="na">mId</span><span class="o">;</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="nd">@Override</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="n">View</span> <span class="nf">getView</span><span class="o">(</span><span class="kt">int</span> <span class="n">position</span><span class="o">,</span> <span class="n">View</span> <span class="n">convertView</span><span class="o">,</span> <span class="n">ViewGroup</span> <span class="n">parent</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="kd">final</span> <span class="n">ViewHolder</span> <span class="n">holder</span><span class="o">;</span>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">convertView</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">convertView</span> <span class="o">=</span> <span class="n">LayoutInflater</span><span class="o">.</span><span class="na">from</span><span class="o">(</span><span class="n">parent</span><span class="o">.</span><span class="na">getContext</span><span class="o">())</span>
+</span><span class='line'>                    <span class="o">.</span><span class="na">inflate</span><span class="o">(</span><span class="n">R</span><span class="o">.</span><span class="na">layout</span><span class="o">.</span><span class="na">li_person</span><span class="o">,</span> <span class="n">parent</span><span class="o">,</span> <span class="kc">false</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'>            <span class="n">holder</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ViewHolder</span><span class="o">();</span>
+</span><span class='line'>            <span class="n">holder</span><span class="o">.</span><span class="na">mNameView</span> <span class="o">=</span> <span class="o">(</span><span class="n">TextView</span><span class="o">)</span> <span class="n">convertView</span><span class="o">.</span><span class="na">findViewById</span><span class="o">(</span><span class="n">R</span><span class="o">.</span><span class="na">id</span><span class="o">.</span><span class="na">name</span><span class="o">);</span>
+</span><span class='line'>            <span class="n">holder</span><span class="o">.</span><span class="na">mAddressView</span> <span class="o">=</span> <span class="o">(</span><span class="n">TextView</span><span class="o">)</span> <span class="n">convertView</span><span class="o">.</span><span class="na">findViewById</span><span class="o">(</span><span class="n">R</span><span class="o">.</span><span class="na">id</span><span class="o">.</span><span class="na">address</span><span class="o">);</span>
+</span><span class='line'>            <span class="n">holder</span><span class="o">.</span><span class="na">mAgeView</span> <span class="o">=</span> <span class="o">(</span><span class="n">TextView</span><span class="o">)</span> <span class="n">convertView</span><span class="o">.</span><span class="na">findViewById</span><span class="o">(</span><span class="n">R</span><span class="o">.</span><span class="na">id</span><span class="o">.</span><span class="na">age</span><span class="o">);</span>
+</span><span class='line'>            <span class="n">holder</span><span class="o">.</span><span class="na">mImageView</span> <span class="o">=</span> <span class="o">(</span><span class="n">ImageView</span><span class="o">)</span> <span class="n">convertView</span><span class="o">.</span><span class="na">findViewById</span><span class="o">(</span><span class="n">R</span><span class="o">.</span><span class="na">id</span><span class="o">.</span><span class="na">image</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'>            <span class="n">convertView</span><span class="o">.</span><span class="na">setTag</span><span class="o">(</span><span class="n">holder</span><span class="o">);</span>
+</span><span class='line'>        <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">holder</span> <span class="o">=</span> <span class="o">(</span><span class="n">ViewHolder</span><span class="o">)</span> <span class="n">convertView</span><span class="o">.</span><span class="na">getTag</span><span class="o">();</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="kd">final</span> <span class="n">Person</span> <span class="n">p</span> <span class="o">=</span> <span class="n">getItem</span><span class="o">(</span><span class="n">position</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="n">holder</span><span class="o">.</span><span class="na">mNameView</span><span class="o">.</span><span class="na">setText</span><span class="o">(</span><span class="n">p</span><span class="o">.</span><span class="na">mName</span> <span class="o">==</span> <span class="kc">null</span> <span class="o">?</span> <span class="kc">null</span> <span class="o">:</span> <span class="s">&quot;Unknown&quot;</span><span class="o">);</span>
+</span><span class='line'>        <span class="n">holder</span><span class="o">.</span><span class="na">mAddressView</span><span class="o">.</span><span class="na">setText</span><span class="o">(</span><span class="n">p</span><span class="o">.</span><span class="na">mAddress</span> <span class="o">==</span> <span class="kc">null</span> <span class="o">?</span> <span class="kc">null</span> <span class="o">:</span> <span class="s">&quot;Unknown&quot;</span><span class="o">);</span>
+</span><span class='line'>        <span class="n">holder</span><span class="o">.</span><span class="na">mAgeView</span><span class="o">.</span><span class="na">setText</span><span class="o">(</span><span class="n">p</span><span class="o">.</span><span class="na">mAge</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="o">?</span>  <span class="s">&quot;Unknown&quot;</span> <span class="o">:</span> <span class="n">String</span><span class="o">.</span><span class="na">valueOf</span><span class="o">(</span><span class="n">p</span><span class="o">.</span><span class="na">mAge</span><span class="o">));</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">p</span><span class="o">.</span><span class="na">mAvatarUri</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">holder</span><span class="o">.</span><span class="na">mImageView</span><span class="o">.</span><span class="na">setVisibility</span><span class="o">(</span><span class="n">View</span><span class="o">.</span><span class="na">GONE</span><span class="o">);</span>
+</span><span class='line'>        <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">holder</span><span class="o">.</span><span class="na">mImageView</span><span class="o">.</span><span class="na">setVisibility</span><span class="o">(</span><span class="n">View</span><span class="o">.</span><span class="na">VISIBLE</span><span class="o">);</span>
+</span><span class='line'>            <span class="n">holder</span><span class="o">.</span><span class="na">mImageView</span><span class="o">.</span><span class="na">setImageURI</span><span class="o">(</span><span class="n">p</span><span class="o">.</span><span class="na">mAvatarUri</span><span class="o">);</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">return</span> <span class="n">convertView</span><span class="o">;</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="c1">// @See http://developer.android.com/training/improving-layouts/smooth-scrolling.html</span>
+</span><span class='line'>  <span class="kd">private</span> <span class="kd">static</span> <span class="kd">class</span> <span class="nc">ViewHolder</span> <span class="o">{</span>
+</span><span class='line'>      <span class="n">TextView</span> <span class="n">mNameView</span><span class="o">;</span>
+</span><span class='line'>      <span class="n">TextView</span> <span class="n">mAddressView</span><span class="o">;</span>
+</span><span class='line'>      <span class="n">TextView</span> <span class="n">mAgeView</span><span class="o">;</span>
+</span><span class='line'>      <span class="n">ImageView</span> <span class="n">mImageView</span><span class="o">;</span>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>  
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This pattern is fine for the most basic use-cases (such as displaying a single TextView for each list item), but even in this small example there is a lot of presentation-specific cruft. Imagine a more complex view (remote image loading, date formatting, animation etc) and this code can quickly grow out of control!</p>
+
+<p>Show what can we do about this? Encapsulate all of this logic in a custom view class!</p>
+
+
+		
+		<a href="/blog/2014/03/20/the-power-of-custom-compound-views/" class="more-link">Continue reading &#8230;</a>
+	</div>
+
+</article>
 
 
     <article class="post" itemprop="blogPost" itemscope itemtype="http://schema.org/BlogPosting">
