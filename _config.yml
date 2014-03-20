@@ -2,7 +2,7 @@
 #      Main Configs       #
 # ----------------------- #
 
-url: http://danielgrech.github.io
+url: http://dgrech.com
 title: Daniel Grech
 subtitle: Just my little corner of the interwebs
 author: Daniel Grech
@@ -90,14 +90,14 @@ delicious_user:
 delicious_count: 3
 
 # Disqus Comments
-disqus_short_name:
+disqus_short_name: dgrech
 disqus_show_comment_count: false
 
 # Google Analytics
-google_analytics_tracking_id:
+google_analytics_tracking_id:  UA-49198812-1
 
 # Facebook Like
-facebook_like: false
+facebook_like: true
 
 # Gravatar
 email_md5: 7ca13d02310d7f1683f3269184c2e882 #echo -n "example@email.com" | md5
